@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Art Portfolio & Commission Gallery</title>
+  <!-- นำเข้าฟอนต์ภาษาไทยอ่านง่าย สไตล์มินิมอล -->
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #121212;
+      --card-bg: #1e1e1e;
+      --frame-border: #f5f5f5;
+      --accent-color: #ff7b54;
+      --text-main: #ffffff;
+      --text-muted: #a0a0a0;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Prompt', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      line-height: 1.6;
+    }
+
+    /* ส่วนหัวเว็บ (Header & Profile) */
+    header {
+      text-align: center;
+      padding: 60px 20px 30px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    header h1 {
+      font-size: 2.2rem;
+      font-weight: 600;
+      letter-spacing: 2px;
+      margin-bottom: 10px;
+    }
+
+    header p {
+      color: var(--text-muted);
+      font-weight: 300;
+      margin-bottom: 20px;
+    }
+
+    .social-links a {
+      display: inline-block;
+      color: var(--text-main);
+      text-decoration: none;
+      border: 1px solid #333;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      margin: 0 5px;
+      transition: 0.2s;
+    }
+
+    .social-links a:hover {
+      border-color: var(--accent-color);
+      color: var(--accent-color);
+    }
+
+    /* แถบปุ่มกรองหมวดหมู่ (Filter Tabs) */
+    .filter-bar {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .filter-btn {
+      background: var(--card-bg);
+      color: var(--text-muted);
+      border: 1px solid #333;
+      padding: 8px 20px;
+      border-radius: 25px;
+      cursor: pointer;
+      font-family: 'Prompt', sans-serif;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+    }
+
+    .filter-btn:hover, .filter-btn.active {
+      background: var(--accent-color);
+      color: #fff;
+      border-color: var(--accent-color);
+    }
+
+    /* ตารางแสดงผลงาน (Masonry Grid) */
+    .gallery-container {
+      column-count: 3;
+      column-gap: 24px;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px 60px;
+    }
+
+    @media (max-width: 900px) { .gallery-container { column-count: 2; } }
+    @media (max-width: 600px) { .gallery-container { column-count: 1; } }
+
+    /* การ์ดรูปภาพ + กรอบรูปจำลอง (Art Frame) */
+    .art-card {
+      break-inside: avoid;
+      background: var(--card-bg);
+      border-radius: 8px;
+      margin-bottom: 24px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.25s ease;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+    }
+
+    .art-card:hover { transform: translateY(-5px); }
+
+    /* กรอบขาวจำลองรอบรูปวาด */
+    .art-frame {
+      background: #252525;
+      padding: 14px;
+      border-bottom: 1px solid #2e2e2e;
+    }
+
+    .art-frame img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border: 6px solid var(--frame-border);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+
+    .art-details { padding: 16px; }
+
+    .badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      padding: 3px 10px;
+      border-radius: 4px;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .badge-standard { background: rgba(76, 175, 80, 0.2); color: #81c784; }
+    .badge-plus { background: rgba(255, 123, 84, 0.2); color: #ff8a65; }
+    .badge-personal { background: rgba(100, 181, 246, 0.2); color: #64b5f6; }
+
+    .art-title { font-size: 1.05rem; font-weight: 600; margin-bottom: 4px; }
+    .art-desc { font-size: 0.85rem; color: var(--text-muted); }
+
+    /* หน้าต่างขยายดูภาพเต็มจอ (Lightbox Modal) */
+    .lightbox {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.92);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      padding: 20px;
+    }
+
+    .lightbox.open { display: flex; }
+
+    .lightbox img {
+      max-width: 90%;
+      max-height: 75vh;
+      border: 8px solid var(--frame-border);
+      box-shadow: 0 0 30px rgba(0,0,0,0.8);
+    }
+
+    .lightbox-caption {
+      margin-top: 15px;
+      text-align: center;
+      max-width: 600px;
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 20px; right: 30px;
+      font-size: 2rem;
+      color: #fff;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 1. ส่วนหัวเว็บ: แก้ไขชื่อและลิงก์โซเชียลของคุณตรงนี้ -->
+  <header>
+    <h1>YOUR ARTIST NAME</h1>
+    <p>Digital Portrait & Illustration • เปิดรับคิวงานคอมมิชชัน</p>
+    <div class="social-links">
+      <a href="https://instagram.com" target="_blank">Instagram</a>
+      <a href="https://facebook.com" target="_blank">Facebook Page</a>
+      <a href="#commission-rate" onclick="alert('ใส่รายละเอียดเรทราคาหรือลิงก์ทักแชทตรงนี้ได้เลยครับ')">เรทราคา / สั่งงาน</a>
+    </div>
+  </header>
+
+  <!-- 2. ปุ่มกรองหมวดหมู่ตามชื่อไฟล์ที่ออกแบบไว้ -->
+  <div class="filter-bar">
+    <button class="filter-btn active" onclick="filterArt('ALL', this)">ทั้งหมด</button>
+    <button class="filter-btn" onclick="filterArt('CMS_Standard', this)">คอมมิชชัน 1-2 คน (Standard)</button>
+    <button class="filter-btn" onclick="filterArt('CMS_Plus', this)">คอมมิชชัน 3+ คน / เพิ่มรายละเอียด (Plus)</button>
+    <button class="filter-btn" onclick="filterArt('Personal', this)">งานวาดอิสระ (Personal)</button>
+  </div>
+
+  <!-- 3. พื้นที่แสดงการ์ดรูปภาพ (JavaScript จะนำรูปมาเติมตรงนี้) -->
+  <main class="gallery-container" id="gallery"></main>
+
+  <!-- 4. หน้าต่างขยายดูภาพเต็มจอเมื่อคลิกที่รูป -->
+  <div class="lightbox" id="lightbox" onclick="closeLightbox()">
+    <span class="close-btn">&times;</span>
+    <img id="lightbox-img" src="" alt="">
+    <div class="lightbox-caption">
+      <h3 id="lightbox-title"></h3>
+      <p id="lightbox-desc" style="color: #aaa; font-size: 0.9rem; margin-top: 5px;"></p>
+    </div>
+  </div>
+
+  <script>
+    // ==========================================
+    // จุดเชื่อมต่อ Google Apps Script API
+    // (เมื่อทำ Step 2 เสร็จ ให้นำ URL มาวางในเครื่องหมายคำพูดด้านล่างนี้)
+    // ==========================================
+    const API_URL = ''; 
+
+    // ข้อมูลจำลองสำหรับทดสอบหน้าเว็บก่อนเชื่อม Google Drive จริง
+    const mockArtworks = [
+      {
+        category: 'CMS_Standard',
+        title: 'คู่รักในชุดวิวาห์',
+        description: 'ภาพวาดดิจิทัลพอร์ตเทรตคู่ ขนาด A4 (เรทปกติ 1-2 คน)',
+        url: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=600'
+      },
+      {
+        category: 'CMS_Plus',
+        title: 'ครอบครัวสุขสันต์พร้อมน้องหมา',
+        description: 'วาด 4 คน + สัตว์เลี้ยง 1 ตัว พร้อมฉากสวนหลังบ้าน',
+        url: 'https://images.unsplash.com/photo-1547891654-e66ed7ebb968?w=600'
+      },
+      {
+        category: 'Personal',
+        title: 'แสงยามเย็นริมหน้าต่าง',
+        description: 'งานวาดฝึกแสงเงาส่วนตัว #digitalart',
+        url: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=600'
+      }
+    ];
+
+    let allArtworks = [];
+
+    // ฟังก์ชันเริ่มต้นโหลดข้อมูล
+    async function initGallery() {
+      if (API_URL) {
+        try {
+          const response = await fetch(API_URL);
+          allArtworks = await response.json();
+        } catch (error) {
+          console.error('ดึงข้อมูลไม่สำเร็จ:', error);
+          allArtworks = mockArtworks;
+        }
+      } else {
+        // ใช้ข้อมูลจำลองถ้ายังไม่ได้ใส่ API_URL
+        allArtworks = mockArtworks;
+      }
+      renderGallery(allArtworks);
+    }
+
+    // ฟังก์ชันสร้างการ์ดรูปภาพลงหน้าเว็บ
+    function renderGallery(items) {
+      const gallery = document.getElementById('gallery');
+      gallery.innerHTML = '';
+
+      items.forEach(art => {
+        // กำหนดป้ายกำกับ (Badge) ตามหมวดหมู่
+        let badgeText = 'Personal Work';
+        let badgeClass = 'badge-personal';
+        if (art.category === 'CMS_Standard') {
+          badgeText = 'Commission • 1-2 คน';
+          badgeClass = 'badge-standard';
+        } else if (art.category === 'CMS_Plus') {
+          badgeText = 'Commission • 3+ คน / เพิ่มพร็อพ';
+          badgeClass = 'badge-plus';
+        }
+
+        const card = document.createElement('div');
+        card.className = 'art-card';
+        card.onclick = () => openLightbox(art);
+        card.innerHTML = `
+          <div class="art-frame">
+            <img src="${art.url}" alt="${art.title}" loading="lazy">
+          </div>
+          <div class="art-details">
+            <span class="badge ${badgeClass}">${badgeText}</span>
+            <div class="art-title">${art.title}</div>
+            <div class="art-desc">${art.description}</div>
+          </div>
+        `;
+        gallery.appendChild(card);
+      });
+    }
+
+    // ฟังก์ชันกรองหมวดหมู่เมื่อกดปุ่ม
+    function filterArt(category, btnElement) {
+      document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+      btnElement.classList.add('active');
+
+      if (category === 'ALL') {
+        renderGallery(allArtworks);
+      } else {
+        const filtered = allArtworks.filter(art => art.category === category);
+        renderGallery(filtered);
+      }
+    }
+
+    // ฟังก์ชันเปิด/ปิดหน้าต่างขยายภาพ
+    function openLightbox(art) {
+      document.getElementById('lightbox-img').src = art.url;
+      document.getElementById('lightbox-title').innerText = art.title;
+      document.getElementById('lightbox-desc').innerText = art.description;
+      document.getElementById('lightbox').classList.add('open');
+    }
+
+    function closeLightbox() {
+      document.getElementById('lightbox').classList.remove('open');
+    }
+
+    initGallery();
+  </script>
+</body>
+</html>
